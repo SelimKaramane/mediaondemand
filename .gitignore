@@ -5,3 +5,6 @@ node_modules/
 out/
 .DS_Store
 backups/
+playwright-report/
+test-results/
+DOCUMENTACION.md

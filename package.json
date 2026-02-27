@@ -5,9 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "lint": "next lint",
     "start": "next start",
     "seed": "node scripts/seed-algolia.js",
-    "backup": "node scripts/backup-algolia.js"
+    "backup": "node scripts/backup-algolia.js",
+    "test:smoke": "node scripts/test-smoke.js",
+    "test:api": "node --test tests/api.test.js",
+    "test": "npm run test:smoke && npm run test:api",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "next": "14.2.29",
@@ -23,10 +28,12 @@
     "@vercel/analytics": "^1.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "autoprefixer": "^10",
     "postcss": "^8",
     "tailwindcss": "^3",
     "eslint": "^8",
-    "eslint-config-next": "14.2.29"
+    "eslint-config-next": "14.2.29",
+    "supertest": "^6.3.4"
   }
 }

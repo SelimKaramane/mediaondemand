@@ -21,6 +21,9 @@ export default function ContentPage() {
   const [videoAssetId, setVideoAssetId] = useState(null)
   const [videoStatus, setVideoStatus] = useState(null)
   const [videoMode, setVideoMode] = useState('youtube')
+  const [history, setHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState(null)
   const [readerMode, setReaderMode] = useState('pdf')
   const [converting, setConverting] = useState(false)
   const [convertedPdfUrl, setConvertedPdfUrl] = useState(null)
@@ -51,6 +54,30 @@ export default function ContentPage() {
   const epubSource = content?.epubUrl ? `/api/epub?url=${encodeURIComponent(content.epubUrl)}` : null
   const textSource = content?.textUrl ? `/api/text?url=${encodeURIComponent(content.textUrl)}` : null
 
+  const loadHistory = async () => {
+    if (!user?.id) return
+    setHistoryLoading(true)
+    setHistoryError(null)
+    try {
+      const supabase = createClient()
+      let query = supabase
+        .from('conversion_events')
+        .select('id, type, status, created_at, storage_path, metadata, object_id')
+        .order('created_at', { ascending: false })
+        .limit(6)
+      if (content?.objectID) {
+        query = query.eq('object_id', content.objectID)
+      }
+      const { data, error } = await query
+      if (error) throw error
+      setHistory(data || [])
+    } catch (err) {
+      setHistoryError(err.message || 'Impossible de charger l’historique')
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!content) return
     setConvertedPdfUrl(null)
@@ -71,6 +98,11 @@ export default function ContentPage() {
     if (content.epubUrl) setReaderMode('epub')
     else setReaderMode('pdf')
   }, [content?.objectID])
+
+  useEffect(() => {
+    if (!user?.id || !content?.objectID) return
+    loadHistory()
+  }, [user?.id, content?.objectID])
 
   useEffect(() => {
     if (!epubSource || readerMode !== 'epub' || !epubContainerEl) return
@@ -226,7 +258,7 @@ export default function ContentPage() {
   const coverImage = coverUrl || content?.thumbnail || null
 
   const handleTranscodeVideo = async () => {
-    if (!(content?.videoSourceUrl || content?.videoStoragePath) || videoTranscoding) return
+    if (!content?.videoSourceUrl || videoTranscoding) return
     setVideoTranscoding(true)
     setVideoError(null)
     try {
@@ -234,9 +266,9 @@ export default function ContentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sourceUrl: content.videoSourceUrl || null,
-          storagePath: content.videoStoragePath || null,
+          sourceUrl: content.videoSourceUrl,
           objectID: content.objectID,
+          userId: user?.id || null,
         }),
       })
       const data = await res.json()
@@ -245,6 +277,7 @@ export default function ContentPage() {
       setVideoPlaybackId(data.playbackId)
       setVideoAssetId(data.assetId || null)
       setVideoStatus(data.status || null)
+      await loadHistory()
     } catch (err) {
       setVideoError(err.message || 'Transcodage échoué')
     } finally {
@@ -273,12 +306,18 @@ export default function ContentPage() {
       const res = await fetch('/api/convert/ebook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceUrl: content.epubUrl, filename: content.title }),
+        body: JSON.stringify({
+          sourceUrl: content.epubUrl,
+          filename: content.title,
+          objectID: content.objectID,
+          userId: user?.id || null,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Conversion échouée')
       if (!data?.pdfUrl) throw new Error('PDF introuvable')
       setConvertedPdfUrl(data.pdfUrl)
+      await loadHistory()
     } catch (err) {
       setConvertError(err.message || 'Conversion échouée')
     } finally {
@@ -455,7 +494,7 @@ export default function ContentPage() {
                     </button>
                   )}
                 </div>
-                {(content.videoSourceUrl || content.videoStoragePath) && !muxPlaybackId && (
+                {content.videoSourceUrl && !muxPlaybackId && (
                   <button
                     onClick={handleTranscodeVideo}
                     disabled={videoTranscoding}
@@ -661,6 +700,55 @@ export default function ContentPage() {
             </div>
           </div>
         )}
+
+        {/* History */}
+        <div className="rounded-xl p-6 mt-8" style={{ background: '#141824', border: '1px solid #1e2d47' }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-widest">Historique</h2>
+            <button
+              onClick={loadHistory}
+              className="text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              Rafraîchir
+            </button>
+          </div>
+          {!user && (
+            <p className="text-slate-400 text-sm">Connecte-toi pour voir l’historique des conversions.</p>
+          )}
+          {user && historyLoading && (
+            <p className="text-slate-400 text-sm">Chargement de l’historique…</p>
+          )}
+          {user && historyError && (
+            <p className="text-red-400 text-sm">{historyError}</p>
+          )}
+          {user && !historyLoading && !historyError && history.length === 0 && (
+            <p className="text-slate-400 text-sm">Aucun événement pour ce contenu.</p>
+          )}
+          {user && history.length > 0 && (
+            <div className="space-y-3">
+              {history.map(event => (
+                <div
+                  key={event.id}
+                  className="flex items-start justify-between gap-4 border-b border-white/5 pb-3"
+                >
+                  <div>
+                    <div className="text-sm text-slate-200">
+                      {event.type === 'video' ? 'Vidéo' : 'Ebook'} · {event.status}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {new Date(event.created_at).toLocaleString('fr-FR')}
+                    </div>
+                  </div>
+                  {event.storage_path && (
+                    <div className="text-xs text-slate-500 break-all">
+                      {event.storage_path}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Description */}
         <div className="rounded-xl p-6" style={{ background: '#141824', border: '1px solid #1e2d47' }}>

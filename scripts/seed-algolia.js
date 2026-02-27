@@ -103,10 +103,6 @@ const PEXELS_MIN_DURATION = process.env.PEXELS_MIN_DURATION
 const PEXELS_MAX_DURATION = process.env.PEXELS_MAX_DURATION
 const PEXELS_LANGUAGE = process.env.PEXELS_LANGUAGE || 'English'
 const PEXELS_GENRE = process.env.PEXELS_GENRE || 'Technologie'
-const SUPABASE_VIDEO_PUBLIC = (process.env.SUPABASE_VIDEO_PUBLIC || '').toLowerCase() === 'true'
-const VIDEO_SOURCES_FILE = process.env.VIDEO_SOURCES_FILE
-  ? path.resolve(process.cwd(), process.env.VIDEO_SOURCES_FILE)
-  : path.resolve(process.cwd(), 'scripts/video-sources.json')
 
 function decodeXml(value) {
   if (!value) return value
@@ -237,24 +233,6 @@ async function fetchPexelsVideos(queries) {
   }
 
   return items
-}
-
-function loadVideoSources() {
-  if (!fs.existsSync(VIDEO_SOURCES_FILE)) return {}
-  try {
-    const raw = fs.readFileSync(VIDEO_SOURCES_FILE, 'utf8')
-    const data = JSON.parse(raw)
-    if (!Array.isArray(data)) return {}
-    const map = {}
-    for (const entry of data) {
-      if (!entry || !entry.youtubeId) continue
-      map[entry.youtubeId] = entry
-    }
-    return map
-  } catch (err) {
-    console.warn(`⚠️ Impossible de lire ${VIDEO_SOURCES_FILE}: ${err.message}`)
-    return {}
-  }
 }
 
 function parsePlaylistConfig() {
@@ -463,7 +441,6 @@ async function seed() {
     }
 
     let videoList = videos
-    const videoSourceMap = loadVideoSources()
     const playlists = parsePlaylistConfig()
     const pexelsQueries = parsePexelsQueries()
 
@@ -482,11 +459,7 @@ async function seed() {
         thumbnail: v.thumbnail || videoThumbnails[i % videoThumbnails.length],
         youtubeId: v.youtubeId,
         youtubeUrl: v.youtubeUrl,
-        videoSourceUrl: v.videoSourceUrl
-          || (SUPABASE_VIDEO_PUBLIC && v.youtubeId ? videoSourceMap[v.youtubeId]?.publicUrl : null)
-          || (!v.youtubeId ? videoSources[i % videoSources.length] : null),
-        videoStoragePath: v.videoStoragePath
-          || (v.youtubeId ? videoSourceMap[v.youtubeId]?.storagePath : null),
+        videoSourceUrl: v.videoSourceUrl || (!v.youtubeId ? videoSources[i % videoSources.length] : null),
         ...v,
       })),
       ...ebooks,

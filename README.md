@@ -64,6 +64,12 @@ git push -u origin main
 # 4. ✅ Déploiement automatique à chaque push !
 ```
 
+## CI/CD
+
+- **GitHub Actions** : build automatique sur chaque push / pull request.
+- **Vercel** : déploiement automatique dès qu’un commit est poussé sur `main`.
+ - **Tests** : lint + smoke test + API test + E2E (Playwright).
+
 ### Variables d'environnement à ajouter sur Vercel :
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -95,9 +101,20 @@ Page catalogue ← Algolia InstantSearch (recherche + filtres)
 ### Métriques
 - `@vercel/analytics` est activé pour suivre les performances et l’usage (Web Vitals).
 
+### Journalisation PostgreSQL
+- Une table `conversion_events` stocke l’historique des conversions (ebook/vidéo).
+- SQL à exécuter dans Supabase (SQL Editor) : `supabase/conversion_events.sql`
+- RLS activé : chaque utilisateur voit uniquement ses événements.
+
 ### Sauvegarde
 - **Algolia** : export via `npm run backup` → fichier JSON dans `backups/`.
 - **Supabase** : sauvegardes gérées côté service (plan Supabase).
+
+## Compromis coût / qualité
+
+- **Plans gratuits** : rapides à mettre en place mais quotas limités (stockage, conversions, assets vidéo, requêtes).
+- **Qualité de service** : pour plus de débit, de stockage et de performances, il faut passer aux plans payants.
+- **Choix du projet** : on privilégie les services managés (moins de maintenance), au prix de limites sur les plans free.
 
 ## Structure du projet
 
