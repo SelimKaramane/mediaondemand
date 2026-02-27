@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
 import { Play, BookOpen, Clock, Star, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'

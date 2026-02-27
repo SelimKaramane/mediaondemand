@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 600 18px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 15px Arial, sans-serif; fill: #334155; }
+      .box { rx: 14; ry: 14; stroke-width: 2; }
+      .line { stroke: #334155; stroke-width: 2.4; fill: none; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1800" height="1100" fill="#f8fafc"/>
+  <text x="70" y="70" class="title">MediaOnDemand - Schema d'infrastructure (services manages)</text>
+
+  <!-- Core flow -->
+  <rect x="80" y="160" width="220" height="84" class="box" fill="#e2e8f0" stroke="#64748b"/>
+  <text x="118" y="208" class="label">Utilisateur</text>
+
+  <rect x="370" y="150" width="300" height="104" class="box" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="430" y="196" class="label">Vercel + Next.js</text>
+  <text x="430" y="221" class="small">Frontend + API Routes</text>
+
+  <rect x="760" y="120" width="280" height="84" class="box" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="820" y="168" class="label">Frontend UI</text>
+
+  <rect x="760" y="230" width="280" height="84" class="box" fill="#f1f5f9" stroke="#475569"/>
+  <text x="845" y="278" class="label">API Next.js</text>
+
+  <!-- Managed services -->
+  <rect x="1130" y="70" width="290" height="84" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1190" y="118" class="label">Supabase Auth</text>
+
+  <rect x="1130" y="180" width="290" height="84" class="box" fill="#cffafe" stroke="#0891b2"/>
+  <text x="1225" y="228" class="label">Algolia</text>
+
+  <rect x="1130" y="290" width="290" height="84" class="box" fill="#fef3c7" stroke="#d97706"/>
+  <text x="1193" y="338" class="label">CloudConvert</text>
+
+  <rect x="1130" y="400" width="290" height="84" class="box" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="1240" y="448" class="label">Mux</text>
+
+  <rect x="1130" y="510" width="290" height="84" class="box" fill="#e2e8f0" stroke="#64748b"/>
+  <text x="1228" y="558" class="label">Pexels</text>
+
+  <rect x="1130" y="620" width="290" height="84" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1168" y="664" class="label">Supabase Storage</text>
+  <text x="1196" y="688" class="small">bucket ebooks</text>
+
+  <rect x="1130" y="730" width="290" height="84" class="box" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1165" y="774" class="label">Supabase Postgres</text>
+  <text x="1172" y="798" class="small">table conversion_events</text>
+
+  <!-- Observability and backup -->
+  <rect x="760" y="380" width="280" height="84" class="box" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="790" y="428" class="label">Vercel Analytics</text>
+
+  <rect x="760" y="490" width="280" height="84" class="box" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="845" y="538" class="label">Logs JSON</text>
+
+  <rect x="760" y="600" width="280" height="84" class="box" fill="#ecfccb" stroke="#65a30d"/>
+  <text x="772" y="648" class="label">Backup Algolia (JSON)</text>
+
+  <!-- CI/CD -->
+  <rect x="80" y="830" width="260" height="84" class="box" fill="#fef9c3" stroke="#ca8a04"/>
+  <text x="138" y="878" class="label">GitHub Repo</text>
+
+  <rect x="430" y="830" width="300" height="84" class="box" fill="#fef9c3" stroke="#ca8a04"/>
+  <text x="470" y="872" class="label">GitHub Actions CI</text>
+  <text x="478" y="896" class="small">lint + tests + build</text>
+
+  <!-- Arrows -->
+  <line x1="300" y1="202" x2="370" y2="202" class="line" marker-end="url(#arrow)"/>
+  <line x1="670" y1="190" x2="760" y2="162" class="line" marker-end="url(#arrow)"/>
+  <line x1="670" y1="214" x2="760" y2="272" class="line" marker-end="url(#arrow)"/>
+
+  <line x1="1040" y1="162" x2="1130" y2="112" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="162" x2="1130" y2="222" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="272" x2="1130" y2="332" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="272" x2="1130" y2="442" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="272" x2="1130" y2="552" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="272" x2="1130" y2="662" class="line" marker-end="url(#arrow)"/>
+  <line x1="1040" y1="272" x2="1130" y2="772" class="line" marker-end="url(#arrow)"/>
+
+  <line x1="670" y1="234" x2="760" y2="422" class="line" marker-end="url(#arrow)"/>
+  <line x1="670" y1="234" x2="760" y2="532" class="line" marker-end="url(#arrow)"/>
+  <line x1="670" y1="234" x2="760" y2="642" class="line" marker-end="url(#arrow)"/>
+
+  <line x1="340" y1="872" x2="430" y2="872" class="line" marker-end="url(#arrow)"/>
+  <line x1="730" y1="872" x2="760" y2="872" class="line"/>
+  <line x1="760" y1="872" x2="760" y2="202" class="line"/>
+  <line x1="760" y1="202" x2="670" y2="202" class="line" marker-end="url(#arrow)"/>
+
+  <!-- Legend -->
+  <rect x="1490" y="860" width="250" height="190" class="box" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="1520" y="896" class="label">Legende</text>
+  <rect x="1520" y="918" width="22" height="22" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1554" y="935" class="small">Supabase</text>
+  <rect x="1520" y="948" width="22" height="22" fill="#cffafe" stroke="#0891b2"/>
+  <text x="1554" y="965" class="small">Recherche</text>
+  <rect x="1520" y="978" width="22" height="22" fill="#fee2e2" stroke="#dc2626"/>
+  <text x="1554" y="995" class="small">Video managed</text>
+  <rect x="1520" y="1008" width="22" height="22" fill="#fef3c7" stroke="#d97706"/>
+  <text x="1554" y="1025" class="small">Conversion ebook</text>
+</svg>

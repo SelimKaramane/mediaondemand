@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { logInfo, logError } from '../../../../../lib/logger'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const MUX_TOKEN_ID = process.env.MUX_TOKEN_ID
 const MUX_TOKEN_SECRET = process.env.MUX_TOKEN_SECRET

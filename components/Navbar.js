@@ -1,12 +1,13 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../lib/supabase'
 import { Play, BookOpen, LogIn, LogOut, User } from 'lucide-react'
 
 export default function Navbar() {
   const [user, setUser] = useState(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
@@ -14,7 +15,7 @@ export default function Navbar() {
       setUser(session?.user ?? null)
     })
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({

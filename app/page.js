@@ -5,14 +5,14 @@ import { searchClient, INDEX_NAME } from '../lib/algolia'
 import Navbar from '../components/Navbar'
 import ContentCard from '../components/ContentCard'
 import { SlidersHorizontal, X } from 'lucide-react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 function Hit({ hit }) {
   return <ContentCard hit={hit} />
 }
 
-export default function Home() {
+function HomeContent() {
   const [showFilters, setShowFilters] = useState(false)
   const searchParams = useSearchParams()
   const typeParam = searchParams.get('type')
@@ -134,5 +134,13 @@ export default function Home() {
         </div>
       </InstantSearch>
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" style={{ background: '#0f1117' }} />}>
+      <HomeContent />
+    </Suspense>
   )
 }

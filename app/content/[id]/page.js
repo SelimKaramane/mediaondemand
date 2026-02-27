@@ -1,6 +1,7 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { searchClient, INDEX_NAME } from '../../../lib/algolia'
 import Navbar from '../../../components/Navbar'
@@ -54,7 +55,7 @@ export default function ContentPage() {
   const epubSource = content?.epubUrl ? `/api/epub?url=${encodeURIComponent(content.epubUrl)}` : null
   const textSource = content?.textUrl ? `/api/text?url=${encodeURIComponent(content.textUrl)}` : null
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     if (!user?.id) return
     setHistoryLoading(true)
     setHistoryError(null)
@@ -76,7 +77,7 @@ export default function ContentPage() {
     } finally {
       setHistoryLoading(false)
     }
-  }
+  }, [content?.objectID, user?.id])
 
   useEffect(() => {
     if (!content) return
@@ -97,12 +98,12 @@ export default function ContentPage() {
     setTextError(null)
     if (content.epubUrl) setReaderMode('epub')
     else setReaderMode('pdf')
-  }, [content?.objectID])
+  }, [content])
 
   useEffect(() => {
     if (!user?.id || !content?.objectID) return
     loadHistory()
-  }, [user?.id, content?.objectID])
+  }, [loadHistory, user?.id, content?.objectID])
 
   useEffect(() => {
     if (!epubSource || readerMode !== 'epub' || !epubContainerEl) return
@@ -215,13 +216,26 @@ export default function ContentPage() {
   const muxStatus = videoStatus || content?.muxStatus || null
   const canPlayHls = muxStatus === 'ready' || muxStatus === 'ready_for_streaming'
 
+  const refreshVideoStatus = useCallback(async () => {
+    if (!muxAssetId) return
+    try {
+      const res = await fetch(`/api/convert/video/status?assetId=${encodeURIComponent(muxAssetId)}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Status check failed')
+      setVideoStatus(data.status || null)
+      if (data.playbackId) setVideoPlaybackId(data.playbackId)
+    } catch (err) {
+      setVideoError(err.message || 'Status check failed')
+    }
+  }, [muxAssetId])
+
   useEffect(() => {
     if (!muxAssetId || canPlayHls) return
     const interval = setInterval(() => {
       refreshVideoStatus()
     }, 4000)
     return () => clearInterval(interval)
-  }, [muxAssetId, canPlayHls])
+  }, [muxAssetId, canPlayHls, refreshVideoStatus])
 
   useEffect(() => {
     setPlaying(false)
@@ -282,19 +296,6 @@ export default function ContentPage() {
       setVideoError(err.message || 'Transcodage échoué')
     } finally {
       setVideoTranscoding(false)
-    }
-  }
-
-  const refreshVideoStatus = async () => {
-    if (!muxAssetId) return
-    try {
-      const res = await fetch(`/api/convert/video/status?assetId=${encodeURIComponent(muxAssetId)}`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Status check failed')
-      setVideoStatus(data.status || null)
-      if (data.playbackId) setVideoPlaybackId(data.playbackId)
-    } catch (err) {
-      setVideoError(err.message || 'Status check failed')
     }
   }
 
