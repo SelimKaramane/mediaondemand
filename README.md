@@ -1,6 +1,6 @@
 # MediaOnDemand 🎬📚
 
-Plateforme de streaming vidéos & ebooks avec authentification Google, recherche Algolia et hébergement Vercel.
+Plateforme de streaming vidéos & ebooks avec authentification Google; recherche Algolia et hébergement Vercel.
 
 ## Stack technique
 
