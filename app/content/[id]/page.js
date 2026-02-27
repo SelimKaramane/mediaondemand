@@ -21,7 +21,9 @@ export default function ContentPage() {
   const [videoPlaybackId, setVideoPlaybackId] = useState(null)
   const [videoAssetId, setVideoAssetId] = useState(null)
   const [videoStatus, setVideoStatus] = useState(null)
+  const [ignoreStoredMux, setIgnoreStoredMux] = useState(false)
   const [videoMode, setVideoMode] = useState('youtube')
+  const [videoAutoTriggered, setVideoAutoTriggered] = useState(false)
   const [history, setHistory] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState(null)
@@ -89,7 +91,9 @@ export default function ContentPage() {
     setVideoPlaybackId(null)
     setVideoAssetId(null)
     setVideoStatus(null)
+    setIgnoreStoredMux(false)
     setVideoError(null)
+    setVideoAutoTriggered(false)
     const preferMux = content?.muxStatus === 'ready' || content?.muxStatus === 'ready_for_streaming'
     const preferMp4 = !!content?.videoSourceUrl
     const preferYoutube = !!(content?.youtubeUrl || content?.youtubeId)
@@ -211,23 +215,66 @@ export default function ContentPage() {
     }
   }
 
-  const muxPlaybackId = videoPlaybackId || content?.muxPlaybackId || null
-  const muxAssetId = videoAssetId || content?.muxAssetId || null
-  const muxStatus = videoStatus || content?.muxStatus || null
+  const muxPlaybackId = videoPlaybackId || (!ignoreStoredMux ? content?.muxPlaybackId : null) || null
+  const muxAssetId = videoAssetId || (!ignoreStoredMux ? content?.muxAssetId : null) || null
+  const muxStatus = videoStatus || (!ignoreStoredMux ? content?.muxStatus : null) || null
   const canPlayHls = muxStatus === 'ready' || muxStatus === 'ready_for_streaming'
+  const canTranscodeVideo = Boolean(content?.videoSourceUrl)
+  const showTranscodeButton = canTranscodeVideo && (!muxPlaybackId || !canPlayHls)
 
   const refreshVideoStatus = useCallback(async () => {
     if (!muxAssetId) return
     try {
       const res = await fetch(`/api/convert/video/status?assetId=${encodeURIComponent(muxAssetId)}`)
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Status check failed')
+      if (!res.ok) {
+        if (res.status === 404) {
+          setIgnoreStoredMux(true)
+          setVideoPlaybackId(null)
+          setVideoAssetId(null)
+          setVideoStatus('missing')
+          setVideoError('Asset Mux introuvable. Nouveau transcodage automatique en cours…')
+          return
+        }
+        throw new Error(data?.error || 'Status check failed')
+      }
       setVideoStatus(data.status || null)
       if (data.playbackId) setVideoPlaybackId(data.playbackId)
     } catch (err) {
       setVideoError(err.message || 'Status check failed')
     }
   }, [muxAssetId])
+
+  const triggerVideoTranscode = useCallback(async () => {
+    if (!content?.videoSourceUrl || videoTranscoding) return
+    setVideoTranscoding(true)
+    setVideoError(null)
+    try {
+      const res = await fetch('/api/convert/video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceUrl: content.videoSourceUrl,
+          objectID: content.objectID,
+          userId: user?.id || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error || 'Transcodage échoué')
+      if (!data?.playbackId) throw new Error('Playback ID manquant')
+      setVideoPlaybackId(data.playbackId)
+      setVideoAssetId(data.assetId || null)
+      setVideoStatus(data.status || null)
+      if (data.status === 'ready' || data.status === 'ready_for_streaming') {
+        setVideoMode('mux')
+      }
+      await loadHistory()
+    } catch (err) {
+      setVideoError(err.message || 'Transcodage échoué')
+    } finally {
+      setVideoTranscoding(false)
+    }
+  }, [content?.videoSourceUrl, content?.objectID, loadHistory, user?.id, videoTranscoding])
 
   useEffect(() => {
     if (!muxAssetId || canPlayHls) return
@@ -236,6 +283,28 @@ export default function ContentPage() {
     }, 4000)
     return () => clearInterval(interval)
   }, [muxAssetId, canPlayHls, refreshVideoStatus])
+
+  useEffect(() => {
+    if (!content || content.type !== 'video') return
+    if (!canTranscodeVideo || canPlayHls || muxAssetId) return
+    if (videoTranscoding || videoAutoTriggered) return
+    setVideoAutoTriggered(true)
+    triggerVideoTranscode()
+  }, [
+    canPlayHls,
+    canTranscodeVideo,
+    content,
+    muxAssetId,
+    triggerVideoTranscode,
+    videoAutoTriggered,
+    videoTranscoding,
+  ])
+
+  useEffect(() => {
+    if (canPlayHls && muxPlaybackId && videoMode !== 'mux') {
+      setVideoMode('mux')
+    }
+  }, [canPlayHls, muxPlaybackId, videoMode])
 
   useEffect(() => {
     setPlaying(false)
@@ -270,34 +339,6 @@ export default function ContentPage() {
   // Prefer converted PDF when available; fallback to source
   const pdfUrl = convertedPdfUrl || content?.pdfUrl || null
   const coverImage = coverUrl || content?.thumbnail || null
-
-  const handleTranscodeVideo = async () => {
-    if (!content?.videoSourceUrl || videoTranscoding) return
-    setVideoTranscoding(true)
-    setVideoError(null)
-    try {
-      const res = await fetch('/api/convert/video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sourceUrl: content.videoSourceUrl,
-          objectID: content.objectID,
-          userId: user?.id || null,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Transcodage échoué')
-      if (!data?.playbackId) throw new Error('Playback ID manquant')
-      setVideoPlaybackId(data.playbackId)
-      setVideoAssetId(data.assetId || null)
-      setVideoStatus(data.status || null)
-      await loadHistory()
-    } catch (err) {
-      setVideoError(err.message || 'Transcodage échoué')
-    } finally {
-      setVideoTranscoding(false)
-    }
-  }
 
   const handleConvert = async () => {
     if (!content?.epubUrl || converting) return
@@ -495,9 +536,9 @@ export default function ContentPage() {
                     </button>
                   )}
                 </div>
-                {content.videoSourceUrl && !muxPlaybackId && (
+                {showTranscodeButton && (
                   <button
-                    onClick={handleTranscodeVideo}
+                    onClick={triggerVideoTranscode}
                     disabled={videoTranscoding}
                     className={`px-2.5 py-1 rounded text-xs border transition-colors ${
                       videoTranscoding

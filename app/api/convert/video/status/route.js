@@ -30,7 +30,7 @@ export async function GET(request) {
     })
     if (!res.ok) {
       const text = await res.text()
-      return NextResponse.json({ error: `Mux ${res.status}: ${text}` }, { status: 500 })
+      return NextResponse.json({ error: `Mux ${res.status}: ${text}` }, { status: res.status })
     }
 
     const data = await res.json()
