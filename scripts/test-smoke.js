@@ -1,5 +1,5 @@
 // scripts/test-smoke.js
-// *Basic smoke checks for CI
+// Basic smoke checks for CI
 
 const fs = require('fs')
 const path = require('path')
