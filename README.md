@@ -86,6 +86,19 @@ Supabase Auth (Google SSO / JWT)
 Page catalogue ← Algolia InstantSearch (recherche + filtres)
 ```
 
+## Observabilité & sauvegarde
+
+### Logs
+- Les routes API envoient des logs JSON structurés (niveau, événement, durée).
+- Sur Vercel, ces logs sont centralisés automatiquement dans l’onglet **Logs**.
+
+### Métriques
+- `@vercel/analytics` est activé pour suivre les performances et l’usage (Web Vitals).
+
+### Sauvegarde
+- **Algolia** : export via `npm run backup` → fichier JSON dans `backups/`.
+- **Supabase** : sauvegardes gérées côté service (plan Supabase).
+
 ## Structure du projet
 
 ```

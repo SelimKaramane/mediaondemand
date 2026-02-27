@@ -1,6 +1,6 @@
 'use client'
 
-import { Play, BookOpen, Clock, Star } from 'lucide-react'
+import { Play, BookOpen, Clock, Star, Download } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function ContentCard({ hit }) {
@@ -48,12 +48,20 @@ export default function ContentCard({ hit }) {
         <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-1">
             <Clock size={11} />
-            {isVideo ? `${hit.duration} min` : `${hit.pages} pages`}
+            {isVideo ? `${hit.duration ?? '—'} min` : `${hit.pages ?? '—'} pages`}
           </div>
-          <div className="flex items-center gap-1 text-amber-400">
-            <Star size={11} className="fill-amber-400" />
-            {hit.rating}
-          </div>
+          {typeof hit.rating === 'number' && (
+            <div className="flex items-center gap-1 text-amber-400">
+              <Star size={11} className="fill-amber-400" />
+              {hit.rating}
+            </div>
+          )}
+          {typeof hit.rating !== 'number' && typeof hit.downloads === 'number' && (
+            <div className="flex items-center gap-1 text-slate-400">
+              <Download size={11} />
+              {hit.downloads.toLocaleString()}
+            </div>
+          )}
         </div>
       </div>
 

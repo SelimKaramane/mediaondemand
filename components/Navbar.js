@@ -43,7 +43,7 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
-          <a href="/" className="hover:text-white transition-colors flex items-center gap-1.5">
+          <a href="/?type=video" className="hover:text-white transition-colors flex items-center gap-1.5">
             <Play size={14} /> Vidéos
           </a>
           <a href="/?type=ebook" className="hover:text-white transition-colors flex items-center gap-1.5">

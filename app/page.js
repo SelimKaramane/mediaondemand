@@ -1,11 +1,12 @@
 'use client'
 
-import { InstantSearch, SearchBox, Hits, RefinementList, Pagination, Configure, Stats } from 'react-instantsearch'
+import { InstantSearch, SearchBox, Hits, RefinementList, Pagination, Configure, Stats, ClearRefinements, CurrentRefinements } from 'react-instantsearch'
 import { searchClient, INDEX_NAME } from '../lib/algolia'
 import Navbar from '../components/Navbar'
 import ContentCard from '../components/ContentCard'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 function Hit({ hit }) {
   return <ContentCard hit={hit} />
@@ -13,6 +14,9 @@ function Hit({ hit }) {
 
 export default function Home() {
   const [showFilters, setShowFilters] = useState(false)
+  const searchParams = useSearchParams()
+  const typeParam = searchParams.get('type')
+  const typeFilter = typeParam === 'video' || typeParam === 'ebook' ? `type:${typeParam}` : undefined
 
   return (
     <div className="min-h-screen" style={{ background: '#0f1117' }}>
@@ -36,13 +40,13 @@ export default function Home() {
       </div>
 
       {/* Search & Content */}
-      <InstantSearch searchClient={searchClient} indexName={INDEX_NAME} routing>
-        <Configure hitsPerPage={12} />
+      <InstantSearch searchClient={searchClient} indexName={INDEX_NAME}>
+        <Configure hitsPerPage={12} filters={typeFilter} />
 
         <div className="max-w-7xl mx-auto px-6 pb-20">
 
           {/* Search bar + filter toggle */}
-          <div className="flex gap-3 mb-6">
+          <div className="flex gap-3 mb-2">
             <div className="flex-1">
               <SearchBox placeholder="Rechercher un film, livre, genre..." />
             </div>
@@ -57,6 +61,9 @@ export default function Home() {
               Filtres
             </button>
           </div>
+          <p className="text-xs text-slate-500 mb-6">
+            Recherche & filtrage gérés par un moteur managé (Algolia).
+          </p>
 
           <div className="flex gap-8">
 
@@ -92,6 +99,26 @@ export default function Home() {
                   translations={{
                     rootElementText: ({ nbHits, processingTimeMS }) =>
                       `${nbHits.toLocaleString()} résultats (${processingTimeMS}ms)`
+                  }}
+                />
+                <ClearRefinements
+                  classNames={{
+                    root: 'text-xs text-slate-400',
+                    button: 'px-3 py-1 rounded border border-white/10 hover:border-white/20 hover:text-white transition-colors',
+                    disabledButton: 'opacity-40 cursor-not-allowed',
+                  }}
+                  translations={{ resetButtonText: 'Réinitialiser les filtres' }}
+                />
+              </div>
+              <div className="mb-4">
+                <CurrentRefinements
+                  classNames={{
+                    root: 'text-xs text-slate-400',
+                    list: 'flex flex-wrap gap-2',
+                    item: 'px-2 py-1 rounded bg-white/5 border border-white/10',
+                    label: 'mr-1 text-slate-500',
+                    category: 'text-slate-300',
+                    delete: 'ml-2 text-slate-400 hover:text-white',
                   }}
                 />
               </div>
