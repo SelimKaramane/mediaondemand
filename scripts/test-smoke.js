@@ -10,7 +10,6 @@ const requiredFiles = [
   'app/api/convert/ebook/route.js',
   'app/api/convert/video/route.js',
   'supabase/conversion_events.sql',
-  'DOCUMENTACION.md',
   '.env.example',
 ]
 
